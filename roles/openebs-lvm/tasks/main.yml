@@ -1,0 +1,44 @@
+- name: Add OpenEBS repo
+  kubernetes.core.helm_repository:
+    name: openebs
+    repo_url: https://openebs.github.io/charts
+
+- name: Install openebs
+  kubernetes.core.helm:
+    release_name: openebs
+    chart_ref: openebs/openebs
+    chart_version: 3.9.0
+    create_namespace: true
+    release_namespace: openebs
+    wait: true
+
+- name: Add OpenEBS LVM repo
+  kubernetes.core.helm_repository:
+    name: openebs-lvmlocalpv
+    repo_url: https://openebs.github.io/lvm-localpv
+
+- name: Install openebs-lvmlocalpv
+  kubernetes.core.helm:
+    release_name: openebs-lvmlocalpv
+    chart_ref: openebs-lvmlocalpv/lvm-localpv
+    chart_version: 1.3.0
+    create_namespace: true
+    release_namespace: openebs
+    wait: true
+    values:
+      lvmNode:
+        nodeSelector:
+          kubernetes.home/openebs-lvm: ''
+
+- name: Create OpenEBS LVM Storage Class
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: openebs-lvmpv
+      parameters:
+        storage: lvm
+        volgroup: openebs-vg
+      provisioner: local.csi.openebs.io
