@@ -2,4 +2,4 @@
   connection: local
   roles:
     - openebs-lvm
-
+    - cert-manager
